@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitTrack Pro | Dashboard & Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1e293b; /* slate-800 */
+        }
+        .modal-backdrop {
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+        }
+        .btn-gradient {
+            background-image: linear-gradient(to right, #10b981, #059669);
+            transition: all 0.3s ease;
+        }
+        .btn-gradient:hover {
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.5);
+            transform: translateY(-2px);
+        }
+        select optgroup { font-weight: bold; color: #34d399; }
+        select option { background: #334155; color: #ffffff; }
+        .animate-fade-in { animation: fade-in 0.5s ease forwards; }
+        @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #334155; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        .tab-btn.active { color: #34d399; border-color: #34d399; }
+        .toast {
+            animation: fade-in-out 5s ease-in-out forwards;
+        }
+        @keyframes fade-in-out {
+            0% { opacity: 0; transform: translateY(20px); }
+            10% { opacity: 1; transform: translateY(0); }
+            90% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(20px); }
+        }
+         .spinner-tiny {
+            border: 2px solid #34d39930;
+            border-top: 2px solid #34d399;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="text-slate-100 antialiased">
+
+    <div id="app-container" class="min-h-screen flex flex-col items-center justify-center p-4">
+
+        <!-- Settings Screen -->
+        <div id="settings-screen" class="w-full max-w-md">
+            <div class="bg-slate-900/70 backdrop-blur-xl border border-slate-700 p-8 rounded-3xl shadow-2xl shadow-emerald-500/10">
+                <h1 class="text-3xl font-bold text-center mb-2 text-emerald-400">Welcome to FitTrack Pro</h1>
+                <p class="text-slate-400 text-center mb-8">Connect to GitHub to get started.</p>
+                <div class="space-y-4">
+                    <div>
+                        <label for="github-username" class="block text-sm font-medium text-slate-300 mb-1">GitHub Username</label>
+                        <input type="text" id="github-username" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label for="github-repo" class="block text-sm font-medium text-slate-300 mb-1">GitHub Repository</label>
+                        <input type="text" id="github-repo" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label for="github-pat" class="block text-sm font-medium text-slate-300 mb-1">GitHub Personal Access Token</label>
+                        <input type="password" id="github-pat" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                    </div>
+                </div>
+                <button id="connect-btn" class="w-full btn-gradient text-white font-bold py-3 rounded-lg mt-8">Connect & Initialize</button>
+                <div id="connection-status" class="text-center text-red-400 text-sm mt-4 h-5"></div>
+            </div>
+        </div>
+
+        <!-- Profile Setup Screen -->
+        <div id="profile-screen" class="hidden w-full max-w-md">
+            <div class="bg-slate-900/70 backdrop-blur-xl border border-slate-700 p-8 rounded-3xl shadow-2xl shadow-emerald-500/10">
+                <h1 class="text-3xl font-bold text-center mb-2 text-emerald-400">Create Your Profile</h1>
+                <p class="text-slate-400 text-center mb-8">Let's get some basic information to personalize your experience.</p>
+                <div class="space-y-4">
+                    <div>
+                        <label for="user-name" class="block text-sm font-medium text-slate-300 mb-1">Your Name</label>
+                        <input type="text" id="user-name" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="e.g., Alex">
+                    </div>
+                    <div>
+                        <label for="user-age" class="block text-sm font-medium text-slate-300 mb-1">Age</label>
+                        <input type="number" id="user-age" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none" placeholder="e.g., 28">
+                    </div>
+                    <div>
+                        <label for="user-weight" class="block text-sm font-medium text-slate-300 mb-1">Current Weight</label>
+                        <div class="flex items-center gap-4">
+                            <input type="number" id="user-weight" class="w-full bg-slate-700 rounded-lg p-2" placeholder="e.g., 75.5">
+                            <select id="user-weight-unit" class="bg-slate-700 rounded-lg p-2"><option>kg</option><option>lbs</option></select>
+                        </div>
+                    </div>
+                </div>
+                <button id="save-profile-btn" class="w-full btn-gradient text-white font-bold py-3 rounded-lg mt-8">Save Profile & Start</button>
+                <div id="profile-status" class="text-center text-red-400 text-sm mt-4 min-h-[40px]"></div>
+            </div>
+        </div>
+
+        <!-- Main App Screen -->
+        <div id="main-app-screen" class="hidden w-full max-w-7xl mx-auto">
+            <header class="flex justify-between items-center mb-6">
+                <h1 id="dashboard-title" class="text-3xl font-bold text-emerald-400">FitTrack Dashboard</h1>
+                <div class="flex items-center gap-4">
+                    <div id="loading-indicator" class="hidden items-center gap-2 text-sm text-slate-400">
+                        <svg class="animate-spin h-5 w-5 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <span id="loading-text">Loading...</span>
+                    </div>
+                    <button id="logout-btn" class="bg-slate-700 hover:bg-red-600/80 text-white font-semibold py-2 px-4 rounded-lg transition-colors">Disconnect</button>
+                </div>
+            </header>
+
+            <!-- Tabs -->
+            <div class="border-b border-slate-700 mb-6">
+                <nav class="flex space-x-4">
+                    <button data-tab="log" class="tab-btn active font-medium py-2 px-1 border-b-2">Today's Log</button>
+                    <button data-tab="analysis" class="tab-btn font-medium py-2 px-1 border-b-2 border-transparent text-slate-400 hover:text-slate-200">Analysis</button>
+                </nav>
+            </div>
+
+            <!-- Tab Content -->
+            <div id="tab-content">
+                <!-- Log Tab -->
+                <div id="log-tab" class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                    <div class="lg:col-span-3 bg-slate-900/70 border border-slate-700 p-6 rounded-2xl">
+                        <div class="flex justify-between items-center mb-4">
+                             <h2 class="text-2xl font-bold">Log Workout</h2>
+                             <div>
+                                <label for="workout-date" class="block text-sm font-medium text-slate-400 mb-1 text-right">Workout Date</label>
+                                <input type="date" id="workout-date" class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-emerald-500">
+                             </div>
+                        </div>
+                         <p class="text-slate-400 mb-6 -mt-2">For: <span id="selected-date-display" class="font-semibold text-emerald-400"></span></p>
+
+                        <div class="flex items-end gap-4 mb-6">
+                            <div class="flex-grow">
+                                <label for="exercise-select" class="block text-sm font-medium text-slate-300 mb-1">Select Exercise</label>
+                                <select id="exercise-select" class="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-emerald-500"></select>
+                            </div>
+                            <button id="add-exercise-btn" class="btn-gradient text-white font-bold py-2.5 px-5 rounded-lg">Add</button>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-3">Current Session</h3>
+                        <div id="current-workout-list" class="space-y-4 min-h-[200px] max-h-[50vh] overflow-y-auto pr-2"></div>
+                        <div class="border-t border-slate-700/50 pt-4 mt-6 flex justify-between items-center">
+                            <div>
+                                <p class="text-slate-400">Total Estimated Calories:</p>
+                                <p id="total-calories" class="text-3xl font-bold text-emerald-400">0 kcal</p>
+                            </div>
+                            <button id="log-workout-btn" class="bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-6 rounded-lg disabled:bg-slate-600 disabled:cursor-not-allowed" disabled>Save to GitHub</button>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-2 space-y-6">
+                         <div class="bg-slate-900/70 border border-slate-700 p-6 rounded-2xl">
+                             <h3 class="font-semibold mb-4">Quick Log & AI Tools</h3>
+                             <div class="grid grid-cols-2 gap-4">
+                                 <button id="manual-weight-btn" class="w-full text-left bg-slate-700/70 hover:bg-slate-700 p-3 rounded-lg transition-colors">
+                                     <p class="font-semibold text-sm">Log Weight</p>
+                                     <p class="text-xs text-slate-400">Last: <span id="last-weight">N/A</span></p>
+                                 </button>
+                                 <button id="manual-calories-btn" class="w-full text-left bg-slate-700/70 hover:bg-slate-700 p-3 rounded-lg transition-colors">
+                                     <p class="font-semibold text-sm">Log Intake</p>
+                                     <p class="text-xs text-slate-400">Today: <span id="today-intake">N/A</span></p>
+                                 </button>
+                             </div>
+                             <div class="mt-4">
+                                <button id="generate-workout-btn" class="w-full text-left bg-emerald-900/70 hover:bg-emerald-800/90 p-3 rounded-lg transition-colors flex items-center gap-3">
+                                    <span class="text-lg">✨</span>
+                                    <div>
+                                        <p class="font-semibold text-sm text-emerald-300">Generate AI Workout Plan</p>
+                                        <p class="text-xs text-slate-400">Let Gemini create a session for you.</p>
+                                    </div>
+                                </button>
+                             </div>
+                         </div>
+                         <div id="file-manager" class="bg-slate-900/70 border border-slate-700 p-6 rounded-2xl">
+                            <h3 class="font-semibold mb-4">GitHub File Manager</h3>
+                            <p class="text-sm text-slate-400 mb-2">Files for <span id="file-manager-date" class="font-semibold text-emerald-400"></span>:</p>
+                            <div id="file-list" class="space-y-2">
+                                <!-- File list will be injected here -->
+                            </div>
+                         </div>
+                    </div>
+                </div>
+
+                <!-- Analysis Tab -->
+                <div id="analysis-tab" class="hidden space-y-8">
+                    <div>
+                        <h2 class="text-2xl font-bold mb-4">Workout Calendar</h2>
+                        <div id="calendar-heatmap" class="bg-slate-900/70 p-4 rounded-xl border border-slate-700"></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="bg-slate-900/70 p-6 rounded-xl border border-slate-700">
+                            <h3 class="text-lg font-semibold mb-4">Weight Over Time</h3>
+                            <div class="h-64"><canvas id="weight-chart"></canvas></div>
+                        </div>
+                        <div class="bg-slate-900/70 p-6 rounded-xl border border-slate-700">
+                            <h3 class="text-lg font-semibold mb-4">Calorie Intake Over Time</h3>
+                            <div class="h-64"><canvas id="intake-chart"></canvas></div>
+                        </div>
+                    </div>
+                     <div class="bg-slate-900/70 p-6 rounded-xl border border-slate-700">
+                        <h3 class="text-lg font-semibold mb-4">Exercise Deep Dive</h3>
+                        <select id="deep-dive-select" class="w-full md:w-1/3 bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 mb-4"></select>
+                        <div class="h-72"><canvas id="deep-dive-chart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-container" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop"></div>
+    
+    <!-- Toast Notification -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50"></div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script type="module">
+        import { startOfWeek, startOfMonth, format, subMonths, eachDayOfInterval } from 'https://cdn.jsdelivr.net/npm/date-fns@3.6.0/index.mjs';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM ELEMENTS ---
+            const settingsScreen = document.getElementById('settings-screen');
+            const profileScreen = document.getElementById('profile-screen');
+            const mainAppScreen = document.getElementById('main-app-screen');
+            const connectBtn = document.getElementById('connect-btn');
+            const saveProfileBtn = document.getElementById('save-profile-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            const exerciseSelect = document.getElementById('exercise-select');
+            const addExerciseBtn = document.getElementById('add-exercise-btn');
+            const currentWorkoutList = document.getElementById('current-workout-list');
+            const totalCaloriesEl = document.getElementById('total-calories');
+            const logWorkoutBtn = document.getElementById('log-workout-btn');
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const loadingText = document.getElementById('loading-text');
+            const lastWeightEl = document.getElementById('last-weight');
+            const todayIntakeEl = document.getElementById('today-intake');
+            const manualWeightBtn = document.getElementById('manual-weight-btn');
+            const manualCaloriesBtn = document.getElementById('manual-calories-btn');
+            const generateWorkoutBtn = document.getElementById('generate-workout-btn');
+            const connectionStatusEl = document.getElementById('connection-status');
+            const profileStatusEl = document.getElementById('profile-status');
+            const workoutDateInput = document.getElementById('workout-date');
+            const selectedDateDisplay = document.getElementById('selected-date-display');
+            const dashboardTitle = document.getElementById('dashboard-title');
+            const fileManagerDateEl = document.getElementById('file-manager-date');
+            const fileListEl = document.getElementById('file-list');
+
+            // --- TOAST NOTIFICATION ---
+            const showToast = (message, type = 'success') => {
+                const toastContainer = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                const bgColor = type === 'error' ? 'bg-red-600' : 'bg-green-600';
+                toast.className = `toast ${bgColor} text-white font-bold py-3 px-6 rounded-lg shadow-lg`;
+                toast.textContent = message;
+                toastContainer.appendChild(toast);
+                setTimeout(() => toast.remove(), 5000);
+            };
+
+            // --- APP STATE ---
+            let githubConfig = { username: '', repo: '', pat: '' };
+            let appData = { profile: null, workouts: {}, weights: [], calorieIntake: [] };
+            let currentSession = []; 
+            let selectedDate = new Date();
+            let dailyFileSha = null;
+            let charts = {};
+
+            // --- EXERCISE DATA ---
+            const STRENGTH_CALORIES_PER_SET = 5;
+            const EXERCISES = [
+                { id: 'bench_press', name: 'Bench Press (Barbell)', tracking: 'sets', category: 'Chest' },
+                { id: 'dumbbell_press', name: 'Dumbbell Press', tracking: 'sets', category: 'Chest' },
+                { id: 'pushups', name: 'Push-ups', tracking: 'sets', category: 'Chest' },
+                { id: 'pullups', name: 'Pull-ups', tracking: 'sets', category: 'Back' },
+                { id: 'deadlift', name: 'Deadlift', tracking: 'sets', category: 'Back' },
+                { id: 'barbell_row', name: 'Barbell Row', tracking: 'sets', category: 'Back' },
+                { id: 'squats', name: 'Squats (Barbell)', tracking: 'sets', category: 'Legs' },
+                { id: 'leg_press', name: 'Leg Press', tracking: 'sets', category: 'Legs' },
+                { id: 'overhead_press', name: 'Overhead Press', tracking: 'sets', category: 'Shoulders' },
+                { id: 'barbell_curl', name: 'Barbell Curl', tracking: 'sets', category: 'Biceps' },
+                { id: 'tricep_dips', name: 'Tricep Dips', tracking: 'sets', category: 'Triceps' },
+                { id: 'crunches', name: 'Crunches', tracking: 'sets', category: 'Abs' },
+                { id: 'running', name: 'Running', tracking: 'duration', caloriesPerMinute: 10, category: 'Cardio' },
+                { id: 'cycling', name: 'Cycling', tracking: 'duration', caloriesPerMinute: 8, category: 'Cardio' },
+                { id: 'plank', name: 'Plank', tracking: 'duration', caloriesPerMinute: 4, category: 'Cardio' },
+            ];
+
+            // --- GITHUB & DATA HANDLING ---
+            const showLoading = (text) => {
+                loadingText.textContent = text;
+                loadingIndicator.classList.remove('hidden');
+                loadingIndicator.classList.add('flex');
+            };
+            const hideLoading = () => loadingIndicator.classList.add('hidden');
+
+            const githubApi = async (path, method = 'GET', body = null) => {
+                const url = `https://api.github.com/${path}`;
+                const headers = { 'Authorization': `token ${githubConfig.pat}`, 'Accept': 'application/vnd.github.v3+json' };
+                const options = { method, headers, mode: 'cors' };
+                if (body) options.body = JSON.stringify(body);
+
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok) {
+                        const err = await response.json();
+                        return { error: true, status: response.status, message: err.message };
+                    }
+                    if (method === 'GET' && response.status === 204) return true;
+                    if (method === 'DELETE' && response.status === 204) return true;
+                    return method === 'GET' ? await response.json() : true;
+                } catch (error) {
+                    showToast("Network request failed. Check your connection.", 'error');
+                    hideLoading();
+                    return { error: true, status: 0, message: 'Network Error' };
+                }
+            };
+            
+            const getFile = async (path) => {
+                const res = await githubApi(`repos/${githubConfig.username}/${githubConfig.repo}/contents/${path}`);
+                if (!res || res.error) return null;
+                try {
+                    const decodedContent = decodeURIComponent(escape(atob(res.content)));
+                    return { content: decodedContent, sha: res.sha };
+                } catch (e) {
+                    console.error("Error decoding file content from Base64:", e);
+                    return { content: "", sha: res.sha }; // Return empty on decoding error
+                }
+            };
+
+            const putFile = (path, content, sha, commitMsg) => {
+                const base64Content = btoa(unescape(encodeURIComponent(content)));
+                const body = { message: commitMsg, content: base64Content };
+                if (sha) body.sha = sha;
+                return githubApi(`repos/${githubConfig.username}/${githubConfig.repo}/contents/${path}`, 'PUT', body);
+            };
+
+             const deleteFile = async (path) => {
+                showLoading('Deleting file...');
+                const file = await getFile(path); // We need the SHA to delete
+                if (!file || !file.sha) {
+                    showToast('File not found or already deleted.', 'error');
+                    hideLoading();
+                    return false;
+                }
+                
+                const result = await githubApi(`repos/${githubConfig.username}/${githubConfig.repo}/contents/${path}`, 'DELETE', {
+                    message: `docs: delete file ${path}`,
+                    sha: file.sha
+                });
+
+                hideLoading();
+                if (result && !result.error) {
+                    showToast('File deleted successfully.', 'success');
+                    return true;
+                } else {
+                    showToast(`Failed to delete file: ${result?.message}`, 'error');
+                    return false;
+                }
+            };
+            
+            // --- CSV PARSING ---
+            const parseCsv = (csv) => {
+                if (!csv) return [];
+                return csv.split('\n').filter(Boolean).map(rowStr => {
+                    const row = [];
+                    let currentVal = '';
+                    let inQuotes = false;
+                    for (let i = 0; i < rowStr.length; i++) {
+                        const char = rowStr[i];
+                        if (char === '"') {
+                            if (inQuotes && i + 1 < rowStr.length && rowStr[i + 1] === '"') {
+                                currentVal += '"'; i++;
+                            } else {
+                                inQuotes = !inQuotes;
+                            }
+                        } else if (char === ',' && !inQuotes) {
+                            row.push(currentVal.trim()); currentVal = '';
+                        } else {
+                            currentVal += char;
+                        }
+                    }
+                    row.push(currentVal.trim());
+                    return row;
+                });
+            };
+
+            const toCsvRow = (arr) => arr.map(val => {
+                const str = String(val);
+                if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                    return `"${str.replace(/"/g, '""')}"`;
+                }
+                return str;
+            }).join(',') + '\n';
+            
+            // --- INITIALIZATION & DATA LOADING ---
+            const handleConnect = async () => {
+                connectionStatusEl.textContent = '';
+                connectBtn.disabled = true;
+                showLoading('Connecting...');
+                Object.keys(githubConfig).forEach(k => githubConfig[k] = document.getElementById(`github-${k}`).value.trim());
+                if (Object.values(githubConfig).some(v => !v)) {
+                    connectionStatusEl.textContent = 'Please fill in all GitHub details.';
+                    hideLoading();
+                    connectBtn.disabled = false;
+                    return;
+                }
+
+                showLoading('Validating token...');
+                const userCheck = await githubApi('user');
+                if (userCheck.error) {
+                    connectionStatusEl.textContent = 'Token is invalid or expired. Please check your PAT.';
+                    hideLoading();
+                    connectBtn.disabled = false;
+                    return;
+                }
+
+                showLoading('Checking repository access...');
+                const repoCheck = await githubApi(`repos/${githubConfig.username}/${githubConfig.repo}`);
+                 if (repoCheck.error) {
+                    if(repoCheck.status === 404) {
+                        connectionStatusEl.textContent = 'Repository not found. Check spelling or ensure PAT has `repo` scope.';
+                    } else {
+                        connectionStatusEl.textContent = `Error: ${repoCheck.message}`;
+                    }
+                    hideLoading();
+                    connectBtn.disabled = false;
+                    return;
+                }
+
+                localStorage.setItem('githubConfig', JSON.stringify(githubConfig));
+                showLoading('Checking for profile...');
+                const profileFile = await getFile('profile.json');
+                if (profileFile) {
+                    try {
+                        appData.profile = JSON.parse(profileFile.content);
+                        settingsScreen.classList.add('hidden');
+                        mainAppScreen.classList.remove('hidden');
+                        await loadAllData();
+                    } catch (e) {
+                        settingsScreen.classList.add('hidden');
+                        profileScreen.classList.remove('hidden');
+                    }
+                } else {
+                    settingsScreen.classList.add('hidden');
+                    profileScreen.classList.remove('hidden');
+                }
+                hideLoading();
+                connectBtn.disabled = false;
+            };
+
+            const saveProfile = async () => {
+                const name = document.getElementById('user-name').value.trim();
+                const age = parseInt(document.getElementById('user-age').value, 10);
+                const weight = parseFloat(document.getElementById('user-weight').value);
+                const unit = document.getElementById('user-weight-unit').value;
+
+                if (!name || !age || !weight || age <= 0 || weight <= 0) {
+                    showToast('Please fill in all profile fields with valid values.', 'error');
+                    return;
+                }
+
+                profileStatusEl.textContent = '';
+                showLoading('Saving profile...');
+                saveProfileBtn.disabled = true;
+
+                // --- Save Profile File ---
+                appData.profile = { name, age };
+                const profileContent = JSON.stringify(appData.profile, null, 2);
+                const existingProfileFile = await getFile('profile.json');
+                const profileResult = await putFile('profile.json', profileContent, existingProfileFile?.sha, 'feat: create/update user profile');
+
+                if (!profileResult || profileResult.error) {
+                    console.error("Profile Save Error:", profileResult);
+                    let errorMsg;
+                    if (profileResult?.status === 403) {
+                         errorMsg = 'Token lacks permission. Please create a new token with the full `repo` scope selected.';
+                    } else {
+                         errorMsg = `Error saving profile: ${profileResult?.message || 'Unknown error'}`;
+                    }
+                    profileStatusEl.textContent = errorMsg;
+                    showToast(errorMsg, 'error');
+                    hideLoading();
+                    saveProfileBtn.disabled = false;
+                    return;
+                }
+                
+                // --- Save Initial Weight ---
+                const newWeightEntry = { date: format(new Date(), 'yyyy-MM-dd'), weight, unit };
+                const existingWeightsFile = await getFile('weights.csv');
+                let existingWeightsData = [];
+                if (existingWeightsFile && existingWeightsFile.content) {
+                     existingWeightsData = parseCsv(existingWeightsFile.content).map(row => ({date: row[0], weight: +row[1], unit: row[2]}));
+                }
+                const updatedWeightData = [...existingWeightsData.filter(w => w.date !== newWeightEntry.date), newWeightEntry].sort((a,b) => new Date(a.date) - new Date(b.date));
+                const weightCsv = updatedWeightData.map(w => toCsvRow([w.date, w.weight, w.unit])).join('');
+                const weightResult = await putFile('weights.csv', weightCsv, existingWeightsFile?.sha, 'feat: log initial/updated weight');
+                
+                if (!weightResult || weightResult.error) {
+                    console.error("Weight Save Error:", weightResult);
+                    let errorMsg;
+                     if (weightResult?.status === 403) {
+                        errorMsg = 'Token lacks permission. Please create a new token with the full `repo` scope selected.';
+                    } else {
+                        errorMsg = `Error saving weight: ${weightResult?.message || 'Unknown error'}`;
+                    }
+                    profileStatusEl.textContent = errorMsg;
+                    showToast(errorMsg, 'error');
+                    hideLoading();
+                    saveProfileBtn.disabled = false;
+                    return;
+                }
+
+                // --- Success ---
+                showToast('Profile created successfully!', 'success');
+                profileScreen.classList.add('hidden');
+                mainAppScreen.classList.remove('hidden');
+                await loadAllData();
+                hideLoading();
+                saveProfileBtn.disabled = false;
+            };
+
+            const loadAllData = async () => {
+                showLoading('Loading historical data...');
+                const [weightsFile, intakeFile] = await Promise.all([ getFile('weights.csv'), getFile('intake.csv') ]);
+
+                appData.weights = [];
+                if (weightsFile && weightsFile.content) {
+                    appData.weights = parseCsv(weightsFile.content).map(r => ({date: r[0], weight: +r[1], unit: r[2]})).filter(w => w.date && w.weight && w.unit);
+                }
+                appData.calorieIntake = [];
+                if (intakeFile && intakeFile.content) {
+                    appData.calorieIntake = parseCsv(intakeFile.content).map(r => ({date: r[0], calories: +r[1]})).filter(i => i.date && i.calories);
+                }
+                
+                const workoutDirData = await githubApi(`repos/${githubConfig.username}/${githubConfig.repo}/contents/workouts`);
+                appData.workouts = {};
+                if (workoutDirData && Array.isArray(workoutDirData)) {
+                    const workoutFiles = await Promise.all(workoutDirData.map(f => getFile(f.path)));
+                    workoutFiles.filter(Boolean).forEach((file, i) => {
+                        const date = workoutDirData[i].name.replace('.csv', '');
+                        try {
+                             const exercises = parseCsv(file.content).map(row => {
+                                const [id, name, tracking, category, details] = row;
+                                const exercise = { id, name, tracking, category };
+                                if (tracking === 'duration') {
+                                    exercise.duration = Number(details);
+                                } else {
+                                    exercise.sets = JSON.parse(details);
+                                }
+                                return exercise;
+                            });
+                            appData.workouts[date] = { exercises, totalCalories: exercises.reduce((sum, e) => sum + calculateCalories(e), 0) };
+                        } catch (e) { console.error(`Error parsing workout file ${date}.csv`, e); }
+                    });
+                }
+                await loadWorkoutForDate(selectedDate);
+                updateDashboard();
+                hideLoading();
+            };
+
+            const loadWorkoutForDate = async (date) => {
+                showLoading('Loading workout...');
+                const dateStr = format(date, 'yyyy-MM-dd');
+                const workoutFile = await getFile(`workouts/${dateStr}.csv`);
+                if (workoutFile) {
+                    dailyFileSha = workoutFile.sha;
+                    try {
+                        currentSession = parseCsv(workoutFile.content).map(row => {
+                            const [id, name, tracking, category, details, caloriesPerMinute] = row;
+                            const exercise = { id, name, tracking, category };
+                            if (tracking === 'duration') {
+                                exercise.duration = Number(details);
+                                if (caloriesPerMinute) {
+                                     exercise.caloriesPerMinute = Number(caloriesPerMinute);
+                                }
+                            } else {
+                                exercise.sets = JSON.parse(details);
+                            }
+                            return exercise;
+                        });
+                    } catch(e) {
+                        currentSession = []; dailyFileSha = null;
+                    }
+                } else {
+                    currentSession = []; dailyFileSha = null;
+                }
+                renderCurrentWorkout();
+                updateFileManager();
+                hideLoading();
+            };
+            
+            const updateDashboard = () => {
+                if (appData.profile) dashboardTitle.textContent = `Welcome, ${appData.profile.name}`;
+                const lastWeight = appData.weights.slice(-1)[0];
+                lastWeightEl.textContent = lastWeight ? `${lastWeight.weight} ${lastWeight.unit}` : 'N/A';
+                const todayIntake = appData.calorieIntake.find(i => i.date === format(new Date(), 'yyyy-MM-dd'));
+                todayIntakeEl.textContent = todayIntake ? `${todayIntake.calories} kcal` : 'N/A';
+                renderAllCharts();
+            };
+
+            // --- UI & RENDER FUNCTIONS ---
+            const populateExerciseSelect = () => {
+                exerciseSelect.innerHTML = '';
+                const grouped = EXERCISES.reduce((acc, ex) => {
+                    if (!acc[ex.category]) acc[ex.category] = [];
+                    acc[ex.category].push(ex);
+                    return acc;
+                }, {});
+                Object.keys(grouped).sort().forEach(category => {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = category;
+                    grouped[category].sort((a, b) => a.name.localeCompare(b.name)).forEach(ex => {
+                        const option = document.createElement('option');
+                        option.value = ex.id;
+                        option.textContent = ex.name;
+                        optgroup.appendChild(option);
+                    });
+                    exerciseSelect.appendChild(optgroup);
+                });
+                const otherOptgroup = document.createElement('optgroup');
+                otherOptgroup.label = 'Custom';
+                const otherOption = document.createElement('option');
+                otherOption.value = 'other';
+                otherOption.textContent = 'Other (AI Lookup)...';
+                otherOptgroup.appendChild(otherOption);
+                exerciseSelect.appendChild(otherOptgroup);
+            };
+
+            const renderCurrentWorkout = () => {
+                if (currentSession.length === 0) {
+                    currentWorkoutList.innerHTML = `<div class="text-center text-slate-500 py-10"><p>Add an exercise or generate one with AI.</p></div>`;
+                } else {
+                    currentWorkoutList.innerHTML = '';
+                    currentSession.forEach((item, index) => {
+                        const exerciseCard = document.createElement('div');
+                        exerciseCard.className = 'bg-slate-700/50 p-4 rounded-lg animate-fade-in';
+                        let trackingUI;
+                        let calorieInfo = '';
+                        if (item.tracking === 'duration') {
+                             if (item.caloriesPerMinute === 'fetching') {
+                                calorieInfo = `<div class="spinner-tiny ml-2"></div><span class="text-xs text-slate-400 ml-1">Fetching...</span>`;
+                            } else if (item.caloriesPerMinute) {
+                                calorieInfo = `<span class="text-xs text-slate-400 ml-2">(${item.caloriesPerMinute} kcal/min)</span>`;
+                            }
+                            trackingUI = `<div class="flex items-center gap-3 mt-3"><label class="text-sm">Duration:</label><input type="number" value="${item.duration || 10}" class="duration-input w-20 bg-slate-600 rounded-md p-1 text-center" data-index="${index}"><span>min</span>${calorieInfo}</div>`;
+                        } else {
+                            const setsList = (item.sets || []).map((set, setIndex) => `<div class="flex items-center gap-3 text-sm"><span>Set ${setIndex + 1}</span><input type="number" value="${set.reps}" class="set-input w-20 bg-slate-800 rounded-md p-1 text-center" data-type="reps" data-index="${index}" data-set-index="${setIndex}"><span>reps</span><span class="text-slate-400">x</span><input type="number" value="${set.weight}" class="set-input w-20 bg-slate-800 rounded-md p-1 text-center" data-type="weight" data-index="${index}" data-set-index="${setIndex}"><span>kg</span><button class="remove-set-btn text-slate-500 hover:text-red-400" data-index="${index}" data-set-index="${setIndex}">✕</button></div>`).join('');
+                            trackingUI = `<div class="mt-4 space-y-2">${setsList}</div><button class="add-set-btn text-sm mt-3 bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-300 font-semibold py-1 px-3 rounded-md" data-index="${index}">+ Add Set</button>`;
+                        }
+                        exerciseCard.innerHTML = `<div class="flex justify-between items-start"><div><p class="font-semibold">${item.name}</p><p class="text-xs text-emerald-400">${item.category}</p></div><button class="remove-exercise-btn text-slate-500 hover:text-red-400 p-1" data-index="${index}">✕</button></div>${trackingUI}`;
+                        currentWorkoutList.appendChild(exerciseCard);
+                    });
+                }
+                updateTotalCalories();
+                logWorkoutBtn.disabled = currentSession.length === 0;
+            };
+
+            const calculateCalories = (exercise) => {
+                if (exercise.tracking === 'duration') {
+                    const baseCalories = exercise.caloriesPerMinute || EXERCISES.find(e => e.id === exercise.id)?.caloriesPerMinute;
+                    return (baseCalories || 0) * (exercise.duration || 0);
+                }
+                return (exercise.sets ? exercise.sets.length : 0) * STRENGTH_CALORIES_PER_SET;
+            };
+
+            const updateTotalCalories = () => {
+                const total = currentSession.reduce((sum, item) => sum + calculateCalories(item), 0);
+                totalCaloriesEl.textContent = `${Math.round(total)} kcal`;
+            };
+
+            const updateFileManager = async () => {
+                const dateStrYMD = format(selectedDate, 'yyyy-MM-dd');
+                const dateStrDMY = format(selectedDate, 'dd-MM-yyyy');
+                fileManagerDateEl.textContent = dateStrDMY;
+
+                const dataFilePath = `workouts/${dateStrYMD}.csv`;
+                const reportFilePath = `reports/${dateStrDMY}/${dateStrDMY}_WorkoutReport.md`;
+
+                fileListEl.innerHTML = '<div class="spinner-tiny"></div>'; // Show loader
+
+                const [dataFile, reportFile] = await Promise.all([
+                    getFile(dataFilePath),
+                    getFile(reportFilePath)
+                ]);
+
+                fileListEl.innerHTML = '';
+                
+                if (dataFile) {
+                    fileListEl.innerHTML += createFileListItem(dataFilePath, 'Data File');
+                }
+                 if (reportFile) {
+                    fileListEl.innerHTML += createFileListItem(reportFilePath, 'Report File');
+                }
+                if (!dataFile && !reportFile) {
+                    fileListEl.innerHTML = '<p class="text-sm text-slate-500">No files found for this date.</p>';
+                }
+            };
+            
+            const createFileListItem = (path, label) => {
+                 const fileName = path.split('/').pop();
+                 const viewUrl = `https://github.com/${githubConfig.username}/${githubConfig.repo}/blob/main/${path}`;
+                 return `
+                    <div class="bg-slate-800 p-2 rounded-lg flex justify-between items-center text-sm">
+                        <div>
+                            <p class="font-medium text-slate-300">${label}</p>
+                            <p class="text-xs text-slate-500">${fileName}</p>
+                        </div>
+                        <div class="flex gap-2">
+                             <a href="${viewUrl}" target="_blank" class="text-emerald-400 hover:text-emerald-300 p-1">View</a>
+                            <button data-path="${path}" class="delete-file-btn text-red-500 hover:text-red-400 p-1">Delete</button>
+                        </div>
+                    </div>
+                 `;
+            };
+
+            // --- CORE LOGIC ---
+            const addExercise = async () => {
+                const selectedId = exerciseSelect.value;
+                if(selectedId === 'other'){
+                    showModal('custom-exercise');
+                    return;
+                }
+                const exerciseDef = { ...EXERCISES.find(ex => ex.id === selectedId) };
+                if (exerciseDef.tracking === 'duration') {
+                    exerciseDef.duration = 10;
+                } else {
+                    exerciseDef.sets = [{ reps: 8, weight: 20 }];
+                }
+                currentSession.push(exerciseDef);
+                renderCurrentWorkout();
+            };
+
+            const saveWorkout = async () => {
+                showLoading('Saving workout...');
+                const dateStr = format(selectedDate, 'yyyy-MM-dd');
+                let csvContent = '';
+                currentSession.forEach(ex => {
+                    const details = ex.tracking === 'duration' ? ex.duration : JSON.stringify(ex.sets);
+                    const cpm = ex.caloriesPerMinute || '';
+                    csvContent += toCsvRow([ex.id, ex.name, ex.tracking, ex.category, details, cpm]);
+                });
+
+                const result = await putFile(`workouts/${dateStr}.csv`, csvContent, dailyFileSha, `feat: log workout for ${dateStr}`);
+                
+                if (result && !result.error) {
+                    showToast('Workout data saved!', 'success');
+                    await saveDetailedReport(); // Chain the detailed report save
+                    
+                    const previouslySelectedDate = selectedDate;
+                    await loadAllData(); 
+                    selectedDate = previouslySelectedDate; 
+                    updateSelectedDateDisplay();
+                } else {
+                     hideLoading(); // Only hide if the first save fails
+                }
+            };
+
+            const saveDetailedReport = async () => {
+                showLoading('Generating detailed report...');
+
+                const dateStr = format(selectedDate, 'dd-MM-yyyy');
+                const reportPath = `reports/${dateStr}/${dateStr}_WorkoutReport.md`;
+                let mdContent = '';
+                const lastWeight = appData.weights.slice(-1)[0];
+
+                // --- Header ---
+                mdContent += `# FitTrack Pro: Workout Report\n\n`;
+                mdContent += `**Date:** ${dateStr}\n\n`;
+                mdContent += `---\n\n`;
+
+                // --- Profile Section ---
+                mdContent += `## User Profile\n\n`;
+                mdContent += `| Name | Age | Last Recorded Weight |\n`;
+                mdContent += `| :--- | :-: | :--- |\n`;
+                const weightStr = lastWeight ? `${lastWeight.weight} ${lastWeight.unit}` : 'N/A';
+                mdContent += `| ${appData.profile.name} | ${appData.profile.age} | ${weightStr} |\n\n`;
+                mdContent += `---\n\n`;
+
+                // --- Workout Session Table ---
+                mdContent += `## Workout Session\n\n`;
+                mdContent += `| Exercise | Category | Details | Estimated Calories |\n`;
+                mdContent += `| :--- | :--- | :--- | ---: |\n`;
+                
+                currentSession.forEach(ex => {
+                    let details = '';
+                    if (ex.tracking === 'duration') {
+                        details = `${ex.duration || 0} minutes`;
+                    } else {
+                        details = (ex.sets || []).map(set => `${set.reps || 0} reps @ ${set.weight || 0} kg`).join('; ');
+                    }
+                    const calories = Math.round(calculateCalories(ex));
+                    mdContent += `| ${ex.name} | ${ex.category} | ${details} | ${calories} kcal |\n`;
+                });
+                mdContent += `\n`;
+                mdContent += `---\n\n`;
+
+                // --- Summary Section ---
+                const totalCalories = Math.round(currentSession.reduce((sum, item) => sum + calculateCalories(item), 0));
+                mdContent += `## Session Summary\n\n`;
+                mdContent += `**Total Estimated Calories Burned:** ${totalCalories} kcal\n`;
+                
+                const existingReportFile = await getFile(reportPath);
+                const result = await putFile(reportPath, mdContent, existingReportFile?.sha, `docs: create/update report for ${dateStr}`);
+                
+                if (result && !result.error) {
+                    showToast('Detailed report saved to GitHub!', 'success');
+                } else {
+                    showToast('Could not save detailed report.', 'error');
+                }
+            };
+
+            const showModal = (type) => {
+                const modalContainer = document.getElementById('modal-container');
+                let modalHTML = '';
+                if (type === 'weight') {
+                    modalHTML = `<div id="weight-modal" class="bg-slate-800/80 backdrop-blur-xl border border-slate-600 rounded-2xl p-8 w-full max-w-sm">
+                        <h2 class="text-2xl font-bold mb-4">Log Your Weight</h2>
+                        <div class="flex items-center gap-4"><input type="number" id="weight-input" class="w-full bg-slate-700 rounded-lg p-2" placeholder="e.g., 75.5"><select id="weight-unit" class="bg-slate-700 rounded-lg p-2"><option>kg</option><option>lbs</option></select></div>
+                        <div class="flex gap-4 mt-6"><button class="modal-cancel w-full bg-slate-600 p-2 rounded-lg">Cancel</button><button id="save-weight-btn" class="w-full btn-gradient p-2 rounded-lg">Save</button></div>
+                    </div>`;
+                } else if (type === 'calories') {
+                     modalHTML = `<div id="calories-modal" class="bg-slate-800/80 backdrop-blur-xl border border-slate-600 rounded-2xl p-8 w-full max-w-sm">
+                        <h2 class="text-2xl font-bold mb-4">Log Calorie Intake</h2>
+                        <input type="number" id="calories-input" class="w-full bg-slate-700 rounded-lg p-2" placeholder="e.g., 2200">
+                        <div class="flex gap-4 mt-6"><button class="modal-cancel w-full bg-slate-600 p-2 rounded-lg">Cancel</button><button id="save-calories-btn" class="w-full btn-gradient p-2 rounded-lg">Save</button></div>
+                    </div>`;
+                } else if (type === 'generator') {
+                    modalHTML = `<div id="generator-modal" class="bg-slate-800/80 backdrop-blur-xl border border-slate-600 rounded-2xl p-8 w-full max-w-md">
+                        <h2 class="text-2xl font-bold mb-4">✨ AI Workout Planner</h2>
+                        <p class="text-slate-400 mb-6">Describe your fitness goal for today. Be specific for best results!</p>
+                        <textarea id="goal-input" class="w-full bg-slate-700 rounded-lg p-2 h-24" placeholder="e.g., A 30-minute full body workout focusing on strength."></textarea>
+                        <div class="flex gap-4 mt-6"><button class="modal-cancel w-full bg-slate-600 p-2 rounded-lg">Cancel</button><button id="generate-plan-btn" class="w-full btn-gradient p-2 rounded-lg">Generate Plan</button></div>
+                    </div>`;
+                } else if (type === 'custom-exercise') {
+                     modalHTML = `<div id="custom-exercise-modal" class="bg-slate-800/80 backdrop-blur-xl border border-slate-600 rounded-2xl p-8 w-full max-w-md">
+                        <h2 class="text-2xl font-bold mb-4">🏃 Add Custom Exercise</h2>
+                        <p class="text-slate-400 mb-6">Type the name of an exercise. Our AI will look up its calorie burn rate.</p>
+                        <input id="custom-exercise-name" class="w-full bg-slate-700 rounded-lg p-2" placeholder="e.g., Battle Ropes">
+                        <div class="flex gap-4 mt-6"><button class="modal-cancel w-full bg-slate-600 p-2 rounded-lg">Cancel</button><button id="add-custom-btn" class="w-full btn-gradient p-2 rounded-lg">Add to Session</button></div>
+                    </div>`;
+                } else if (type === 'confirm-delete') {
+                    modalHTML = `<div id="confirm-delete-modal" class="bg-slate-800/80 backdrop-blur-xl border border-slate-600 rounded-2xl p-8 w-full max-w-sm">
+                        <h2 class="text-2xl font-bold mb-4 text-red-500">Confirm Deletion</h2>
+                        <p class="text-slate-400 mb-6">Are you sure you want to permanently delete this file? This action cannot be undone.</p>
+                        <div class="flex gap-4 mt-6"><button class="modal-cancel w-full bg-slate-600 p-2 rounded-lg">Cancel</button><button id="confirm-delete-btn" class="w-full bg-red-600 hover:bg-red-500 text-white p-2 rounded-lg">Yes, Delete</button></div>
+                    </div>`;
+                }
+                modalContainer.innerHTML = modalHTML;
+                modalContainer.classList.remove('hidden');
+                modalContainer.classList.add('flex');
+            };
+
+            const hideModal = () => document.getElementById('modal-container').classList.add('hidden');
+
+            const saveWeight = async () => {
+                const weight = parseFloat(document.getElementById('weight-input').value);
+                const unit = document.getElementById('weight-unit').value;
+                if (!weight || weight <= 0) { showToast('Invalid weight', 'error'); return; }
+                
+                showLoading('Saving weight...');
+                const newEntry = { date: format(new Date(), 'yyyy-MM-dd'), weight, unit };
+                const updatedData = [...appData.weights.filter(w => w.date !== newEntry.date), newEntry].sort((a,b) => new Date(a.date) - new Date(b.date));
+                const csv = updatedData.map(w => toCsvRow([w.date, w.weight, w.unit])).join('');
+                
+                const file = await getFile('weights.csv');
+                const result = await putFile('weights.csv', csv, file?.sha, 'feat: update weight log');
+                if (result && !result.error) {
+                    showToast('Weight saved!', 'success'); hideModal(); await loadAllData();
+                }
+                hideLoading();
+            };
+            
+            const saveCalories = async () => {
+                const calories = parseInt(document.getElementById('calories-input').value, 10);
+                if (!calories || calories <= 0) { showToast('Invalid calories', 'error'); return; }
+
+                showLoading('Saving intake...');
+                const newEntry = { date: format(new Date(), 'yyyy-MM-dd'), calories };
+                const updatedData = [...appData.calorieIntake.filter(i => i.date !== newEntry.date), newEntry].sort((a,b) => new Date(a.date) - new Date(b.date));
+                const csv = updatedData.map(i => toCsvRow([i.date, i.calories])).join('');
+
+                const file = await getFile('intake.csv');
+                const result = await putFile('intake.csv', csv, file?.sha, 'feat: update intake log');
+                if (result && !result.error) {
+                    showToast('Intake saved!', 'success'); hideModal(); await loadAllData();
+                }
+                hideLoading();
+            };
+
+            // --- GEMINI API ---
+            const addCustomExercise = async () => {
+                const name = document.getElementById('custom-exercise-name').value.trim();
+                if (!name) {
+                    showToast('Please enter an exercise name.', 'error');
+                    return;
+                }
+                hideModal();
+
+                const newExercise = {
+                    id: `custom_${name.toLowerCase().replace(/\s+/g, '_')}`,
+                    name: name,
+                    tracking: 'duration',
+                    category: 'Custom',
+                    duration: 10,
+                    caloriesPerMinute: 'fetching'
+                };
+                
+                const tempIndex = currentSession.length;
+                currentSession.push(newExercise);
+                renderCurrentWorkout();
+
+                const cpm = await getCaloriesForCustomExercise(name);
+                if (cpm) {
+                    currentSession[tempIndex].caloriesPerMinute = cpm;
+                    showToast(`AI found calorie data for ${name}!`, 'success');
+                } else {
+                     currentSession[tempIndex].caloriesPerMinute = 0; // Fallback
+                     showToast(`Could not find calorie data for ${name}.`, 'error');
+                }
+                renderCurrentWorkout();
+            };
+
+            const getCaloriesForCustomExercise = async (exerciseName) => {
+                 const prompt = `As a fitness database expert, what is the average calories burned per minute for the exercise: "${exerciseName}"? Please return ONLY a single number representing the calories per minute. Do not include any other text, units, or explanations.`;
+                
+                const apiKey = ""; // Canvas will provide this
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                    });
+                    if (!response.ok) return null;
+                    
+                    const result = await response.json();
+                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    const number = parseFloat(text);
+                    return isNaN(number) ? null : number;
+                } catch (error) {
+                    console.error("Gemini Calorie Lookup Error:", error);
+                    return null;
+                }
+            };
+
+            const generateWorkoutPlan = async () => {
+                const goal = document.getElementById('goal-input').value.trim();
+                if (!goal) {
+                    showToast('Please enter a goal for your workout.', 'error');
+                    return;
+                }
+                
+                hideModal();
+                showLoading('✨ Generating Plan...');
+
+                const lastWeight = appData.weights.slice(-1)[0] || { weight: 'N/A', unit: '' };
+                const prompt = `You are an expert fitness coach. Based on the following user profile and their goal for today, generate a structured workout plan.
+
+User Profile:
+- Name: ${appData.profile.name}
+- Age: ${appData.profile.age}
+- Last Recorded Weight: ${lastWeight.weight} ${lastWeight.unit}
+
+Today's Goal:
+"${goal}"
+
+Please provide a workout plan consisting of 3 to 5 exercises. The exercises should be a mix of strength (set-based) and cardio (duration-based) where appropriate for the goal.
+
+Return the response as a valid JSON array of objects. Do not include any text, markdown, or code block syntax outside of the JSON array. Each object in the array must follow this exact schema:
+{
+  "id": "string (a unique snake_case identifier for the exercise)",
+  "name": "string (the full name of the exercise)",
+  "tracking": "string (must be either 'sets' or 'duration')",
+  "category": "string (e.g., 'Chest', 'Back', 'Legs', 'Cardio')",
+  "details": "if tracking is 'sets', this should be an array of objects like [{\"reps\": 8, \"weight\": 20}]. If tracking is 'duration', this should be a number representing minutes, like 15."
+}`;
+
+                const apiKey = ""; // Canvas will provide this
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                    });
+
+                    if (!response.ok) throw new Error(`API Error: ${response.status}`);
+                    
+                    const result = await response.json();
+                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (!text) throw new Error("Received an empty response from the AI.");
+
+                    const generatedExercises = JSON.parse(text);
+                    
+                    currentSession = generatedExercises.map(ex => {
+                        const newExercise = { id: ex.id, name: ex.name, tracking: ex.tracking, category: ex.category };
+                        if (ex.tracking === 'sets') {
+                            newExercise.sets = Array.isArray(ex.details) ? ex.details : [];
+                        } else {
+                            newExercise.duration = typeof ex.details === 'number' ? ex.details : 10;
+                        }
+                        return newExercise;
+                    });
+                    
+                    showToast('AI Workout Plan generated!', 'success');
+                    renderCurrentWorkout();
+
+                } catch (error) {
+                    console.error("Gemini API Error:", error);
+                    showToast(`Failed to generate workout: ${error.message}`, 'error');
+                } finally {
+                    hideLoading();
+                }
+            };
+
+
+            // --- CHARTING LOGIC ---
+            const renderAllCharts = () => {
+                renderCalendar();
+                renderLineChart('weight-chart', 'Weight', appData.weights.map(w => ({x: w.date, y: w.weight})));
+                renderLineChart('intake-chart', 'Calories', appData.calorieIntake.map(i => ({x: i.date, y: i.calories})));
+                populateDeepDiveSelect();
+                renderDeepDiveChart();
+            };
+
+            const renderCalendar = () => {
+                const container = document.getElementById('calendar-heatmap');
+                container.innerHTML = '';
+                const endDate = new Date();
+                const startDate = subMonths(endDate, 11);
+                const days = eachDayOfInterval({ start: startDate, end: endDate });
+                const workoutDays = new Set(Object.keys(appData.workouts));
+                container.style.display = 'grid';
+                container.style.gridTemplateColumns = 'repeat(53, 1fr)';
+                container.style.gap = '2px';
+                days.forEach(day => {
+                    const dayEl = document.createElement('div');
+                    const dateStr = format(day, 'yyyy-MM-dd');
+                    const hasWorkout = workoutDays.has(dateStr);
+                    dayEl.className = `w-3 h-3 rounded-sm ${hasWorkout ? 'bg-emerald-500' : 'bg-slate-700'}`;
+                    dayEl.title = dateStr;
+                    container.appendChild(dayEl);
+                });
+            };
+
+            const renderLineChart = (canvasId, label, data) => {
+                if (charts[canvasId]) charts[canvasId].destroy();
+                if (data.length < 2) return;
+                const ctx = document.getElementById(canvasId).getContext('2d');
+                charts[canvasId] = new Chart(ctx, {
+                    type: 'line',
+                    data: { datasets: [{ label, data, borderColor: '#34d399', tension: 0.1 }] },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        scales: { x: { type: 'time', time: { unit: 'month' }, ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            };
+            
+            const populateDeepDiveSelect = () => {
+                const select = document.getElementById('deep-dive-select');
+                const strengthExercises = EXERCISES.filter(e => e.tracking === 'sets').map(e => e.name).sort();
+                select.innerHTML = strengthExercises.map(name => `<option>${name}</option>`).join('');
+            };
+
+            const renderDeepDiveChart = () => {
+                const canvasId = 'deep-dive-chart';
+                if (charts[canvasId]) charts[canvasId].destroy();
+                const exerciseName = document.getElementById('deep-dive-select').value;
+                const data = [];
+                Object.entries(appData.workouts).forEach(([date, workout]) => {
+                    workout.exercises.forEach(ex => {
+                        if (ex.name === exerciseName && ex.tracking === 'sets') {
+                            const volume = (ex.sets || []).reduce((sum, set) => sum + (set.reps * set.weight), 0);
+                            if (volume > 0) data.push({x: date, y: volume});
+                        }
+                    });
+                });
+                
+                if (data.length < 1) return;
+                const ctx = document.getElementById(canvasId).getContext('2d');
+                charts[canvasId] = new Chart(ctx, {
+                    type: 'bar',
+                    data: { datasets: [{ label: `${exerciseName} Volume (Reps*Weight)`, data, backgroundColor: '#34d399' }] },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        scales: { x: { type: 'time', time: { unit: 'month' }, ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }, y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            };
+
+            // --- EVENT LISTENERS ---
+            const attachEventListeners = () => {
+                connectBtn.addEventListener('click', handleConnect);
+                saveProfileBtn.addEventListener('click', saveProfile);
+                logoutBtn.addEventListener('click', () => {
+                    localStorage.removeItem('githubConfig');
+                    window.location.reload();
+                });
+                
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        document.querySelectorAll('#tab-content > div').forEach(c => c.classList.add('hidden'));
+                        document.getElementById(`${btn.dataset.tab}-tab`).classList.remove('hidden');
+                        if (btn.dataset.tab === 'analysis') renderAllCharts();
+                    });
+                });
+
+                exerciseSelect.addEventListener('change', addExercise);
+                // addExerciseBtn.addEventListener('click', addExercise);
+                logWorkoutBtn.addEventListener('click', saveWorkout);
+                manualWeightBtn.addEventListener('click', () => showModal('weight'));
+                manualCaloriesBtn.addEventListener('click', () => showModal('calories'));
+                generateWorkoutBtn.addEventListener('click', () => showModal('generator'));
+                document.getElementById('deep-dive-select').addEventListener('change', renderDeepDiveChart);
+                workoutDateInput.addEventListener('change', handleDateChange);
+
+                document.getElementById('modal-container').addEventListener('click', (e) => {
+                    if (e.target.matches('.modal-cancel') || e.target.id === 'modal-container') {
+                        hideModal();
+                        exerciseSelect.value = EXERCISES[0].id; // Reset select
+                    }
+                    else if (e.target.id === 'save-weight-btn') saveWeight();
+                    else if (e.target.id === 'save-calories-btn') saveCalories();
+                    else if (e.target.id === 'generate-plan-btn') generateWorkoutPlan();
+                    else if (e.target.id === 'add-custom-btn') addCustomExercise();
+                    else if (e.target.id === 'confirm-delete-btn') {
+                        const path = e.target.dataset.path;
+                        hideModal();
+                        deleteFile(path).then(success => {
+                            if(success) {
+                                loadWorkoutForDate(selectedDate); // Refresh UI
+                                loadAllData(); // Refresh calendar etc.
+                            }
+                        });
+                    }
+                });
+
+                fileListEl.addEventListener('click', e => {
+                    const btn = e.target.closest('.delete-file-btn');
+                    if (btn) {
+                        const path = btn.dataset.path;
+                        showModal('confirm-delete');
+                        document.getElementById('confirm-delete-btn').dataset.path = path;
+                    }
+                });
+
+                currentWorkoutList.addEventListener('change', (e) => {
+                    const { index } = e.target.dataset;
+                    if (e.target.matches('.duration-input')) {
+                        currentSession[index].duration = parseInt(e.target.value, 10);
+                    } else if (e.target.matches('.set-input')) {
+                        const { setIndex, type } = e.target.dataset;
+                        currentSession[index].sets[setIndex][type] = parseFloat(e.target.value);
+                    }
+                    updateTotalCalories();
+                });
+
+                currentWorkoutList.addEventListener('click', (e) => {
+                    const btn = e.target.closest('button');
+                    if (!btn) return;
+                    const { index, setIndex } = btn.dataset;
+                    if (btn.matches('.remove-exercise-btn')) currentSession.splice(index, 1);
+                    else if (btn.matches('.add-set-btn')) {
+                        const lastSet = currentSession[index].sets.slice(-1)[0] || { reps: 8, weight: 20 };
+                        currentSession[index].sets.push({ ...lastSet });
+                    } else if (btn.matches('.remove-set-btn')) currentSession[index].sets.splice(setIndex, 1);
+                    renderCurrentWorkout();
+                });
+            };
+
+            const updateSelectedDateDisplay = () => {
+                selectedDateDisplay.textContent = format(selectedDate, 'EEEE, MMMM d');
+                workoutDateInput.value = format(selectedDate, 'yyyy-MM-dd');
+            };
+
+            const handleDateChange = async (e) => {
+                const [year, month, day] = e.target.value.split('-').map(Number);
+                selectedDate = new Date(Date.UTC(year, month - 1, day));
+                updateSelectedDateDisplay();
+                await loadWorkoutForDate(selectedDate);
+            };
+
+            const init = () => {
+                populateExerciseSelect();
+                updateSelectedDateDisplay();
+                attachEventListeners();
+                const savedConfig = localStorage.getItem('githubConfig');
+                if (savedConfig) {
+                    githubConfig = JSON.parse(savedConfig);
+                    Object.keys(githubConfig).forEach(k => document.getElementById(`github-${k}`).value = githubConfig[k]);
+                    handleConnect();
+                }
+            };
+
+            init();
+        });
+    </script>
+
+</body>
+</html>
+
